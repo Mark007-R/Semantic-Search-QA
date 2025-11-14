@@ -12,7 +12,7 @@ using semantic search + LLM reasoning.
 -   Embed chunks using **sentence-transformers/all-MiniLM-L6-v2**
 -   Store embeddings in **ChromaDB**
 -   Retrieve relevant chunks using similarity search
--   Use **Groq Mixtral-8x7B** to generate accurate answers
+-   Use **Groq Llama-3.3-70b-versatile** to generate accurate answers
 -   Full interactive Q&A mode with context display
 
 ## 📂 Project Structure

@@ -1,9 +1,9 @@
 import os
 from dotenv import load_dotenv
-from langchain.document_loaders import TextLoader
+from langchain_community.document_loaders import TextLoader
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.vectorstores import Chroma
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import Chroma
 from langchain.chains import RetrievalQA
 from langchain_groq import ChatGroq
 
@@ -65,6 +65,7 @@ def initialize_system():
     # Step 5: Initialize LLM
     print("\n[5/5] Initializing Groq LLM...")
     groq_api_key = os.getenv("GROQ_API_KEY")
+    # print(groq_api_key)
     
     if not groq_api_key:
         print("✗ Error: GROQ_API_KEY not found!")
@@ -74,7 +75,7 @@ def initialize_system():
     
     try:
         llm = ChatGroq(
-            model_name="mixtral-8x7b-32768",
+            model_name="llama-3.3-70b-versatile",
             temperature=0.3,
             groq_api_key=groq_api_key,
             max_tokens=500
