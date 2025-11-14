@@ -15,6 +15,12 @@ using semantic search + LLM reasoning.
 -   Use **Groq Llama-3.3-70b-versatile** to generate accurate answers
 -   Full interactive Q&A mode with context display
 
+## Implementation
+
+### Main Page (Terminal)
+![Question](images/Questions.png)
+![Answer](images/Answers.png)
+
 ## 📂 Project Structure
 
     project/
