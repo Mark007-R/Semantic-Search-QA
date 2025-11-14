@@ -1,0 +1,7 @@
+uploads/
+indexes/
+metadata/
+logs/
+temp/
+chroma_db/
+.env
