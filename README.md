@@ -1,4 +1,4 @@
-# Q&A System
+# Semantic-Search-QA
 A Retrieval-Augmented Generation (RAG) project built using
 **LangChain**, **Groq LLM**, **HuggingFace embeddings**, and
 **ChromaDB**.\
