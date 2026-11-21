@@ -12,7 +12,7 @@ using semantic search + LLM reasoning.
 -   Embed chunks using **sentence-transformers/all-MiniLM-L6-v2**
 -   Store embeddings in **ChromaDB**
 -   Retrieve relevant chunks using similarity search
--   Use **Groq Llama-3.3-70b-versatile** to generate accurate answers
+-   Use Groq's **openai/gpt-oss-120b** to generate accurate answers
 -   Full interactive Q&A mode with context display
 
 ## Implementation
@@ -31,6 +31,8 @@ using semantic search + LLM reasoning.
     │── README.md
 
 ## 🔧 Requirements
+
+Python 3.11 or newer.
 
 Install dependencies:
 
