@@ -1,14 +1,18 @@
 import os
 from dotenv import load_dotenv
 from langchain_community.document_loaders import TextLoader
-from langchain.text_splitter import CharacterTextSplitter
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_community.vectorstores import Chroma
-from langchain.chains import RetrievalQA
+from langchain_text_splitters import CharacterTextSplitter
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_chroma import Chroma
+from langchain_classic.chains import RetrievalQA
 from langchain_groq import ChatGroq
 
 # Load environment variables
 load_dotenv()
+
+# Groq model used for answers. Groq retires model IDs over time; current
+# ones are listed at https://console.groq.com/docs/models
+GROQ_MODEL = "openai/gpt-oss-120b"
 
 def initialize_system():
     """
@@ -20,7 +24,7 @@ def initialize_system():
     print("=" * 60)
     
     # Step 1: Load the speech text
-    print("\n[1/5] Loading speech text...")
+    print("\n[1/6] Loading speech text...")
     try:
         loader = TextLoader('speech.txt', encoding='utf-8')
         documents = loader.load()
@@ -31,7 +35,7 @@ def initialize_system():
         return None, None, None
     
     # Step 2: Split text into chunks
-    print("\n[2/5] Splitting text into chunks...")
+    print("\n[2/6] Splitting text into chunks...")
     text_splitter = CharacterTextSplitter(
         separator=". ",
         chunk_size=200,
@@ -42,7 +46,7 @@ def initialize_system():
     print(f"✓ Created {len(chunks)} text chunks")
     
     # Step 3: Create embeddings
-    print("\n[3/5] Loading embedding model...")
+    print("\n[3/6] Loading embedding model...")
     print("(First run may take time to download ~90MB model)")
     embeddings = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-MiniLM-L6-v2",
@@ -52,18 +56,21 @@ def initialize_system():
     print("✓ Embedding model loaded")
     
     # Step 4: Create vector store
-    print("\n[4/5] Creating vector store with ChromaDB...")
-    vectorstore = Chroma.from_documents(
-        documents=chunks,
-        embedding=embeddings,
-        persist_directory="./chroma_db",
-        collection_name="ambedkar_speech"
+    print("\n[4/6] Creating vector store with ChromaDB...")
+    vectorstore = Chroma(
+        collection_name="ambedkar_speech",
+        embedding_function=embeddings,
+        persist_directory="./chroma_db"
     )
-    vectorstore.persist()
+    # chroma_db is kept on disk between runs. Start from an empty collection
+    # each time; otherwise every run adds the same chunks again and the
+    # retriever returns duplicate copies of one chunk.
+    vectorstore.reset_collection()
+    vectorstore.add_documents(chunks)
     print(f"✓ Vector store created with {len(chunks)} embeddings")
     
     # Step 5: Initialize LLM
-    print("\n[5/5] Initializing Groq LLM...")
+    print("\n[5/6] Initializing Groq LLM...")
     groq_api_key = os.getenv("GROQ_API_KEY")
     # print(groq_api_key)
     
@@ -74,13 +81,15 @@ def initialize_system():
         return None, None, None
     
     try:
+        # This model reasons before it answers, and the reasoning counts
+        # against max_tokens, so the cap leaves room for both.
         llm = ChatGroq(
-            model_name="llama-3.3-70b-versatile",
+            model=GROQ_MODEL,
             temperature=0.3,
-            groq_api_key=groq_api_key,
-            max_tokens=500
+            api_key=groq_api_key,
+            max_tokens=1500
         )
-        print("✓ Groq LLM initialized (Mixtral-8x7B)")
+        print(f"✓ Groq LLM initialized ({GROQ_MODEL})")
     except Exception as e:
         print(f"✗ Error initializing Groq: {str(e)}")
         print("Please check your API key and internet connection")
@@ -127,7 +136,7 @@ def ask_question(qa_chain, question):
     
     try:
         # Get response from RAG chain
-        result = qa_chain({"query": question})
+        result = qa_chain.invoke({"query": question})
         
         # Display retrieved context
         if result.get("source_documents"):
@@ -168,7 +177,9 @@ def interactive_mode(qa_chain):
             
             ask_question(qa_chain, question)
             
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, EOFError):
+            # EOFError: input closed (Ctrl+Z / Ctrl+D, or piped input ran out).
+            # Without this the loop below would print the error forever.
             print("\n\nSession interrupted. Goodbye! 👋")
             break
         except Exception as e:

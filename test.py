@@ -3,11 +3,12 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-print(os.getenv("GROQ_API_KEY"))
+# Quick check that the Groq key in .env works. The key itself is not printed.
+print("GROQ_API_KEY found:", bool(os.getenv("GROQ_API_KEY")))
 
 llm = ChatGroq(
-    model_name="llama-3.3-70b-versatile",
-    groq_api_key=os.getenv("GROQ_API_KEY")
+    model="openai/gpt-oss-120b",
+    api_key=os.getenv("GROQ_API_KEY")
 )
 
 print(llm.invoke("Hello"))
